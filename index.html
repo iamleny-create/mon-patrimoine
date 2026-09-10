@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101828">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mon Patrimoine">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Mon Patrimoine</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,sans-serif;color:#101828;background:#f5f6f8}
+*{box-sizing:border-box}body{margin:0}.app{max-width:920px;margin:auto;padding:18px 16px 90px}
+h1{font-size:30px;margin:0}.sub{color:#667085;font-size:14px;margin:5px 0 18px}
+.nav{display:flex;gap:8px;overflow:auto;padding-bottom:4px;margin-bottom:18px}.nav button{border:0;background:#eaecf0;color:#475467;border-radius:12px;padding:10px 13px;font-weight:750;white-space:nowrap}.nav button.active{background:#101828;color:#fff}
+.page{display:none}.page.active{display:block}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.card{background:#fff;border:1px solid #e4e7ec;border-radius:18px;padding:16px}.wide{grid-column:1/-1}.label{font-size:12px;color:#667085;font-weight:700}.big{font-size:27px;font-weight:850;margin-top:5px}.section{font-size:18px;font-weight:850;margin:22px 0 9px}.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.small{font-size:12px;color:#667085;margin-top:5px}.money{font-size:19px;font-weight:850;margin-top:4px}
+input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:12px;font-size:16px;margin-top:7px;background:#fff}button{font-family:inherit;cursor:pointer}.primary{background:#101828;color:#fff;border:0;border-radius:12px;padding:11px 14px;font-weight:800}.ghost{background:#f2f4f7;border:0;border-radius:10px;padding:8px 10px;font-weight:750;color:#344054}
+.kpi{padding:14px;border-radius:16px;background:#f8f9fb;border:1px solid #eaecf0}.kpi .value{font-size:22px;font-weight:850;margin-top:3px}.positive{color:#067647}.negative{color:#b42318}
+.bar{height:9px;background:#eaecf0;border-radius:20px;margin-top:10px;overflow:hidden}.fill{height:100%;border-radius:20px;background:#344054}
+.sankey{margin-top:14px;background:#fff;border:1px solid #e4e7ec;border-radius:20px;padding:15px;overflow:hidden}.flow{display:grid;grid-template-columns:1fr 105px 1fr;gap:12px;align-items:center;min-height:320px}.flowcol{display:flex;flex-direction:column;gap:7px}.flowitem{display:flex;align-items:center;gap:7px;font-size:12px}.flowitem .dot{width:9px;height:9px;border-radius:50%;flex:none}.flowitem strong{margin-left:auto}.budgetnode{height:130px;border-radius:22px;background:#101828;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}.budgetnode b{font-size:20px}.budgetnode span{font-size:11px;opacity:.75;margin-top:4px}.barflow{height:10px;border-radius:99px;background:#eaecf0;overflow:hidden}.barflow i{display:block;height:100%;border-radius:99px;background:#98a2b3}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}.legend span{font-size:11px;color:#667085}
+.list{display:flex;flex-direction:column;gap:8px;margin-top:10px}.item{display:flex;align-items:center;gap:10px;padding:11px;border:1px solid #eaecf0;border-radius:13px}.item .icon{font-size:19px}.item .meta{flex:1}.item .amount{font-weight:850}.actions{display:flex;gap:5px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.formgrid .full{grid-column:1/-1}.empty{padding:25px;text-align:center;color:#667085;border:1px dashed #d0d5dd;border-radius:14px}
+details{margin-top:16px}summary{font-weight:800;color:#475467;cursor:pointer;padding:10px 0}
+.modal{position:fixed;inset:0;background:rgba(16,24,40,.45);display:none;align-items:flex-end;justify-content:center;z-index:20}.modal.open{display:flex}.sheet{background:#fff;width:min(650px,100%);border-radius:24px 24px 0 0;padding:20px 16px 30px;max-height:90vh;overflow:auto}.sheet h2{margin:0 0 15px}.sheet .buttons{display:flex;gap:8px;margin-top:14px}.sheet .buttons>*{flex:1}
+@media(max-width:650px){.grid4{grid-template-columns:1fr 1fr}.flow{grid-template-columns:1fr;min-height:auto}.budgetnode{height:85px}.flowcol{gap:6px}.formgrid{grid-template-columns:1fr}.formgrid .full{grid-column:auto}}
+</style>
+</head>
+<body>
+<main class="app">
+<h1>Mon Patrimoine</h1><div class="sub">Ton cockpit financier personnel</div>
+<nav class="nav">
+<button data-page="home" class="active">🏠 Patrimoine</button>
+<button data-page="budget">💸 Budget</button>
+<button data-page="tx">💳 Transactions</button>
+<button data-page="goals">🎯 Objectifs</button>
+<button data-page="data">⚙️ Données</button>
+</nav>
+
+<section id="home" class="page active">
+<div class="grid">
+<div class="card"><div class="label">Patrimoine net</div><div id="net" class="big">0 €</div><div class="small">Liquidités + PEA − dettes</div></div>
+<div class="card"><div class="label">Dettes restantes</div><div id="debts" class="big">0 €</div><div id="debtMonthly" class="small"></div></div>
+</div>
+<div class="section">📈 PEA</div>
+<div class="card">
+<div class="row"><div><div class="label">Versement mensuel</div><div id="peaAmount" class="money"></div></div><div class="label">90 / 10</div></div>
+<div class="grid4" style="margin-top:12px">
+<div class="kpi"><div class="label">World</div><div id="world" class="value"></div></div>
+<div class="kpi"><div class="label">Emerging</div><div id="em" class="value"></div></div>
+<div class="kpi"><div class="label">PEA actuel</div><div id="peaCurrentView" class="value"></div></div>
+<div class="kpi"><div class="label">Après 12 mois</div><div id="peaYear" class="value"></div></div>
+</div>
+</div>
+<div class="section">🎯 Objectifs rapides</div>
+<div class="grid">
+<div class="card"><div class="row"><div class="label">🚗 Voiture</div><b id="carPct">0%</b></div><div id="carText" class="small"></div><div class="bar"><div id="carBar" class="fill"></div></div></div>
+<div class="card"><div class="row"><div class="label">🛡️ Sécurité</div><b id="safePct">0%</b></div><div id="safeText" class="small"></div><div class="bar"><div id="safeBar" class="fill"></div></div></div>
+</div>
+</section>
+
+<section id="budget" class="page">
+<div class="grid4">
+<div class="kpi"><div class="label">Revenus</div><div id="bIncome" class="value"></div></div>
+<div class="kpi"><div class="label">Dépenses</div><div id="bExpense" class="value"></div></div>
+<div class="kpi"><div class="label">Investissements</div><div id="bInvest" class="value"></div></div>
+<div class="kpi"><div class="label">Cash-flow</div><div id="bFlow" class="value"></div></div>
+</div>
+<div class="grid" style="margin-top:12px">
+<div class="kpi"><div class="label">Taux d'épargne actuel</div><div id="savingRate" class="value"></div></div>
+<div class="kpi"><div class="label">Taux d'épargne possible</div><div id="possibleRate" class="value"></div></div>
+</div>
+<div class="section">🌊 Cash-flow</div>
+<div class="sankey">
+<div class="row"><div><b>Ce mois-ci</b><div class="small">Revenus → Budget → sorties</div></div><button class="ghost" onclick="openBudgetForm()">✏️ Modifier</button></div>
+<div class="flow" id="flow"></div>
+<div class="legend"><span>La largeur des barres représente le poids dans ton budget.</span></div>
+</div>
+<div class="section">📊 Répartition des dépenses</div>
+<div class="card"><div id="expenseList" class="list"></div></div>
+</section>
+
+<section id="tx" class="page">
+<div class="row"><div><div class="section" style="margin-top:0">💳 Transactions</div><div class="small">Ajoute tes dépenses et revenus pour construire ton historique.</div></div><button class="primary" onclick="openTxForm()">＋ Ajouter</button></div>
+<div class="card" style="margin-top:12px"><div id="txList" class="list"></div></div>
+<div class="section">🏷️ Catégories</div>
+<div class="card">
+<div class="row"><div><b>Mes catégories</b><div class="small">Crée tes propres catégories, avec icône et couleur.</div></div><button class="primary" onclick="openCatForm()">＋ Catégorie</button></div>
+<div id="catList" class="list"></div>
+</div>
+</section>
+
+<section id="goals" class="page">
+<div class="section" style="margin-top:0">🎯 Objectifs</div>
+<div class="grid">
+<div class="card"><div class="label">🚗 Voiture</div><div id="goalCar" class="big"></div><div id="goalCarText" class="small"></div><div class="bar"><div id="goalCarBar" class="fill"></div></div></div>
+<div class="card"><div class="label">🛡️ Fonds de sécurité</div><div id="goalSafe" class="big"></div><div id="goalSafeText" class="small"></div><div class="bar"><div id="goalSafeBar" class="fill"></div></div></div>
+</div>
+</section>
+
+<section id="data" class="page">
+<div class="section" style="margin-top:0">⚙️ Données financières</div>
+<div class="card">
+<div class="formgrid">
+<label>Revenu mensuel<input id="income" type="number" inputmode="decimal"></label>
+<label>PEA / mois<input id="pea" type="number" inputmode="decimal"></label>
+<label>Épargne disponible<input id="cash" type="number" inputmode="decimal"></label>
+<label>PEA actuel<input id="peaCurrent" type="number" inputmode="decimal"></label>
+<label>Crédit 1 restant<input id="d1" type="number" inputmode="decimal"></label>
+<label>Crédit 2 restant<input id="d2" type="number" inputmode="decimal"></label>
+<label>Téléphone restant<input id="phone" type="number" inputmode="decimal"></label>
+<label>Mensualités crédits<input id="debtMonthlyInput" type="number" inputmode="decimal"></label>
+<label>Budget voiture<input id="carTarget" type="number" inputmode="decimal"></label>
+<label>Déjà prévu voiture<input id="carSaved" type="number" inputmode="decimal"></label>
+<label>Fonds sécurité cible<input id="safeTarget" type="number" inputmode="decimal"></label>
+</div>
+</div>
+<div class="section">💸 Budget mensuel</div>
+<div class="card">
+<div class="small">Ces lignes alimentent automatiquement le graphique Cash-flow. Tu peux en créer autant que tu veux.</div>
+<div id="budgetLines" class="list"></div>
+<button class="primary" style="margin-top:10px" onclick="openBudgetLineForm()">＋ Ajouter une ligne</button>
+</div>
+</section>
+</main>
+
+<div id="modal" class="modal"><div class="sheet"><div id="modalContent"></div></div></div>
+
+<script>
+const defaults={
+income:1790,pea:350,cash:7000,peaCurrent:200.49,d1:6083,d2:5200,phone:900,debtMonthlyInput:337,carTarget:14000,carSaved:3217,safeTarget:5000,
+categories:[
+{id:"housing",name:"Logement",icon:"🏠"},
+{id:"daily",name:"Vie quotidienne",icon:"🛒"},
+{id:"transport",name:"Transport",icon:"🚗"},
+{id:"insurance",name:"Assurances",icon:"🛡️"},
+{id:"subs",name:"Abonnements",icon:"📱"},
+{id:"debt",name:"Crédits",icon:"💳"}
+],
+budgetLines:[
+{id:"housing",name:"Logement",amount:475,type:"expense",cat:"housing",icon:"🏠"},
+{id:"daily",name:"Vie quotidienne",amount:350,type:"expense",cat:"daily",icon:"🛒"},
+{id:"debt",name:"Crédits",amount:337,type:"expense",cat:"debt",icon:"💳"},
+{id:"insurance",name:"Assurances",amount:87,type:"expense",cat:"insurance",icon:"🛡️"},
+{id:"subs",name:"Abonnements",amount:57,type:"expense",cat:"subs",icon:"📱"},
+{id:"peaLine",name:"PEA",amount:350,type:"investment",cat:"invest",icon:"📈"}
+],
+transactions:[]
+};
+let state=JSON.parse(localStorage.getItem("mp_v3")||"null")||defaults;
+const $=id=>document.getElementById(id);
+const eur=x=>Math.round(x).toLocaleString("fr-FR")+" €";
+const n=x=>Math.max(0,Number(x)||0);
+function save(){localStorage.setItem("mp_v3",JSON.stringify(state))}
+function initInputs(){["income","pea","cash","peaCurrent","d1","d2","phone","debtMonthlyInput","carTarget","carSaved","safeTarget"].forEach(id=>{$(id).value=state[id]})}
+function bindInputs(){["income","pea","cash","peaCurrent","d1","d2","phone","debtMonthlyInput","carTarget","carSaved","safeTarget"].forEach(id=>$(id).addEventListener("input",()=>{state[id]=n($(id).value);save();render()}))}
+function totals(){let exp=state.budgetLines.filter(x=>x.type==="expense").reduce((a,x)=>a+n(x.amount),0);let inv=state.budgetLines.filter(x=>x.type==="investment").reduce((a,x)=>a+n(x.amount),0);return{exp,inv,flow:n(state.income)-exp-inv}}
+function render(){
+const debt=n(state.d1)+n(state.d2)+n(state.phone), t=totals();
+$("net").textContent=eur(n(state.cash)+n(state.peaCurrent)-debt);$("debts").textContent=eur(debt);$("debtMonthly").textContent=eur(state.debtMonthlyInput)+"/mois";
+$("peaAmount").textContent=eur(state.pea);$("world").textContent=eur(state.pea*.9);$("em").textContent=eur(state.pea*.1);$("peaCurrentView").textContent=eur(state.peaCurrent);$("peaYear").textContent=eur(state.peaCurrent+state.pea*12);
+let cp=state.carTarget?n(state.carSaved)/n(state.carTarget):0,sp=state.safeTarget?n(state.cash)/n(state.safeTarget):0;
+$("carPct").textContent=Math.min(100,Math.round(cp*100))+"%";$("carText").textContent=eur(state.carSaved)+" / "+eur(state.carTarget);$("carBar").style.width=Math.min(100,cp*100)+"%";
+$("safePct").textContent=Math.min(100,Math.round(sp*100))+"%";$("safeText").textContent=eur(state.cash)+" / "+eur(state.safeTarget);$("safeBar").style.width=Math.min(100,sp*100)+"%";
+$("bIncome").textContent=eur(state.income);$("bExpense").textContent=eur(t.exp);$("bInvest").textContent=eur(t.inv);$("bFlow").textContent=(t.flow>=0?"+":"")+eur(t.flow);$("bFlow").className="value "+(t.flow>=0?"positive":"negative");
+$("savingRate").textContent=state.income?Math.round(t.inv/state.income*100)+"%":"0%";$("possibleRate").textContent=state.income?Math.round((state.income-t.exp)/state.income*100)+"%":"0%";
+renderFlow(t);renderExpenses(t);renderTx();renderCats();renderBudgetLines();renderGoals();initInputs()
+}
+function renderFlow(t){
+let left=[{name:"Salaire",amount:n(state.income),icon:"💰"}], right=[...state.budgetLines.filter(x=>x.amount>0).map(x=>({name:x.name,amount:n(x.amount),icon:x.icon,type:x.type}))];
+let max=Math.max(n(state.income),1);
+$("flow").innerHTML=`<div class="flowcol">${left.map(x=>flowItem(x,max)).join("")}</div><div class="budgetnode"><b>Budget</b><span>${eur(state.income)}</span></div><div class="flowcol">${right.map(x=>flowItem(x,max)).join("")}${t.flow!==0?flowItem({name:t.flow>=0?"Disponible":"Déficit",amount:Math.abs(t.flow),icon:t.flow>=0?"🟢":"🔴"},max):""}</div>`;
+}
+function flowItem(x,max){return `<div class="flowitem"><span class="dot" style="background:${x.type==="investment"?"#12b76a":"#667085"}"></span><span>${x.icon||"•"} ${x.name}</span><strong>${eur(x.amount)}</strong></div><div class="barflow"><i style="width:${Math.max(3,Math.min(100,x.amount/max*100))}%"></i></div>`}
+function renderExpenses(){let lines=state.budgetLines.filter(x=>x.type==="expense"&&x.amount>0);$("expenseList").innerHTML=lines.length?lines.map(x=>`<div class="item"><span class="icon">${x.icon||"💸"}</span><div class="meta"><b>${x.name}</b><div class="small">${x.cat||"Sans catégorie"}</div></div><span class="amount">${eur(x.amount)}</span></div>`).join(""):"<div class='empty'>Aucune dépense.</div>"}
+function renderTx(){let list=state.transactions.slice().reverse();$("txList").innerHTML=list.length?list.map((x,i)=>`<div class="item"><span class="icon">${x.icon||"💸"}</span><div class="meta"><b>${x.label}</b><div class="small">${x.date} · ${x.category}</div></div><span class="amount ${x.type==="income"?"positive":"negative"}">${x.type==="income"?"+":"−"}${eur(x.amount)}</span><div class="actions"><button class="ghost" onclick="deleteTx(${state.transactions.length-1-i})">×</button></div></div>`).join(""):"<div class='empty'>Aucune transaction pour le moment.</div>"}
+function renderCats(){$("catList").innerHTML=state.categories.map((c,i)=>`<div class="item"><span class="icon">${c.icon}</span><div class="meta"><b>${c.name}</b></div><div class="actions"><button class="ghost" onclick="editCat(${i})">✏️</button><button class="ghost" onclick="deleteCat(${i})">×</button></div></div>`).join("")}
+function renderBudgetLines(){$("budgetLines").innerHTML=state.budgetLines.map((x,i)=>`<div class="item"><span class="icon">${x.icon}</span><div class="meta"><b>${x.name}</b><div class="small">${x.type==="investment"?"Investissement":"Dépense"}</div></div><span class="amount">${eur(x.amount)}</span><div class="actions"><button class="ghost" onclick="editBudgetLine(${i})">✏️</button><button class="ghost" onclick="deleteBudgetLine(${i})">×</button></div></div>`).join("")}
+function renderGoals(){let cp=state.carTarget?Math.min(1,state.carSaved/state.carTarget):0,sp=state.safeTarget?Math.min(1,state.cash/state.safeTarget):0;$("goalCar").textContent=Math.round(cp*100)+"%";$("goalCarText").textContent=eur(state.carSaved)+" / "+eur(state.carTarget);$("goalCarBar").style.width=cp*100+"%";$("goalSafe").textContent=Math.round(sp*100)+"%";$("goalSafeText").textContent=eur(state.cash)+" / "+eur(state.safeTarget);$("goalSafeBar").style.width=sp*100+"%"}
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));$(b.dataset.page).classList.add("active")});
+function openModal(content){$("modalContent").innerHTML=content;$("modal").classList.add("open")}
+function closeModal(){$("modal").classList.remove("open")}
+$("modal").onclick=e=>{if(e.target.id==="modal")closeModal()}
+function catOptions(selected){return state.categories.map(c=>`<option value="${c.id}" ${c.id===selected?"selected":""}>${c.icon} ${c.name}</option>`).join("")}
+function openTxForm(editIndex=null){let x=editIndex===null?{label:"",amount:"",type:"expense",category:state.categories[0]?.id||"",date:new Date().toISOString().slice(0,10),icon:"💸"}:state.transactions[editIndex];openModal(`<h2>${editIndex===null?"Ajouter une transaction":"Modifier la transaction"}</h2><div class="formgrid"><label>Libellé<input id="mLabel" value="${x.label}"></label><label>Montant<input id="mAmount" type="number" value="${x.amount}"></label><label>Type<select id="mType"><option value="expense" ${x.type==="expense"?"selected":""}>Dépense</option><option value="income" ${x.type==="income"?"selected":""}>Revenu</option><option value="investment" ${x.type==="investment"?"selected":""}>Investissement</option></select></label><label>Catégorie<select id="mCat">${catOptions(x.category)}</select></label><label>Date<input id="mDate" type="date" value="${x.date}"></label><label>Icône<input id="mIcon" value="${x.icon||"💸"}"></label></div><div class="buttons"><button class="ghost" onclick="closeModal()">Annuler</button><button class="primary" onclick="saveTx(${editIndex===null?"null":editIndex})">Enregistrer</button></div>`)}
+function saveTx(i){let c=state.categories.find(c=>c.id===$("mCat").value);let x={label:$("mLabel").value.trim()||"Transaction",amount:n($("mAmount").value),type:$("mType").value,category:c?.name||"Sans catégorie",icon:$("mIcon").value||"💸",date:$("mDate").value};if(i===null)state.transactions.push(x);else state.transactions[i]=x;save();closeModal();render()}
+function deleteTx(i){state.transactions.splice(i,1);save();render()}
+function openCatForm(i=null){let x=i===null?{name:"",icon:"🏷️"}:state.categories[i];openModal(`<h2>${i===null?"Créer une catégorie":"Modifier la catégorie"}</h2><label>Nom<input id="cName" value="${x.name}"></label><label>Icône<input id="cIcon" value="${x.icon}"></label><div class="buttons"><button class="ghost" onclick="closeModal()">Annuler</button><button class="primary" onclick="saveCat(${i===null?"null":i})">Enregistrer</button></div>`)}
+function saveCat(i){let x={id:i===null?("c"+Date.now()):state.categories[i].id,name:$("cName").value.trim()||"Nouvelle catégorie",icon:$("cIcon").value||"🏷️"};if(i===null)state.categories.push(x);else state.categories[i]=x;save();closeModal();render()}
+function editCat(i){openCatForm(i)}function deleteCat(i){if(confirm("Supprimer cette catégorie ?")){state.categories.splice(i,1);save();render()}}
+function budgetForm(x,i){openModal(`<h2>${i===null?"Ajouter une ligne budget":"Modifier la ligne"}</h2><div class="formgrid"><label>Nom<input id="blName" value="${x.name}"></label><label>Montant / mois<input id="blAmount" type="number" value="${x.amount}"></label><label>Type<select id="blType"><option value="expense" ${x.type==="expense"?"selected":""}>Dépense</option><option value="investment" ${x.type==="investment"?"selected":""}>Investissement</option></select></label><label>Catégorie<select id="blCat">${catOptions(x.cat)}</select></label><label>Icône<input id="blIcon" value="${x.icon||"💸"}"></label></div><div class="buttons"><button class="ghost" onclick="closeModal()">Annuler</button><button class="primary" onclick="saveBudgetLine(${i===null?"null":i})">Enregistrer</button></div>`)}
+function openBudgetLineForm(){budgetForm({name:"",amount:0,type:"expense",cat:state.categories[0]?.id||"",icon:"💸"},null)}
+function editBudgetLine(i){budgetForm(state.budgetLines[i],i)}
+function saveBudgetLine(i){let x={id:i===null?"b"+Date.now():state.budgetLines[i].id,name:$("blName").value.trim()||"Nouvelle ligne",amount:n($("blAmount").value),type:$("blType").value,cat:$("blCat").value,icon:$("blIcon").value||"💸"};if(i===null)state.budgetLines.push(x);else state.budgetLines[i]=x;save();closeModal();render()}
+function deleteBudgetLine(i){state.budgetLines.splice(i,1);save();render()}
+function openBudgetForm(){document.querySelector('[data-page="data"]').click();setTimeout(()=>document.getElementById("income").focus(),50)}
+initInputs();bindInputs();render();
+</script>
+</body>
+</html>
